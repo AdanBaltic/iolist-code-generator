@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Mi PLC Generator</title>
+  <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+</head>
+<body>
+  <div id="app">
+    <h1>🚀 Mi Generador PLC</h1>
+    <input type="file" @change="onFile" accept=".xlsx,.xls">
+    <br><br>
+    <textarea v-model="declaration" placeholder="Declaration (VAR...END_VAR)" rows="15" readonly style="width:48%;margin-right:2%"></textarea>
+    <textarea v-model="implementation" placeholder="Implementation" rows="15" readonly style="width:48%"></textarea>
+    <br><button @click="generate">🔄 Generar Código</button>
+    <pre>{{ debug }}</pre>
+  </div>
+  <script>
+    const { createApp } = Vue;
+    createApp({
+      data() { 
+        return { 
+          file: null, 
+          declaration: '', 
+          implementation: '', 
+          debug: '',
+          rows: []
+        }; 
+      },
+      methods: {
+        onFile(e) {
+          const file = e.target.files[0];
+          if (!file) return;
+          const reader = new FileReader();
+          reader.onload = (evt) => {
+            try {
+              const data = new Uint8Array(evt.target.result);
+              const wb = XLSX.read(data, {type: 'array'});
+              const wsname = wb.SheetNames[0];
+              const ws = wb.Sheets[wsname];
+              this.rows = XLSX.utils.sheet_to_json(ws, {header:1});
+              this.debug = `✅ Excel cargado: ${wsname}\nFilas: ${this.rows.length}\nColumnas: ${this.rows[0]?.length || 0}`;
+              this.generateCode();
+            } catch(err) {
+              this.debug = `❌ Error: ${err.message}`;
+            }
+          };
+          reader.readAsArrayBuffer(file);
+        },
+        generateCode() {
+          // TODO: TU LÓGICA AQUÍ
+          this.declaration = '// VAR\n// Tu código declaration';
+          this.implementation = '// IMPLEMENTATION\n// Tu código impl';
+          console.log('Rows:', this.rows);
+        }
+      }
+    }).mount('#app');
+  </script>
+</body>
+</html>
